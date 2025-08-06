@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+</head>
+<body>
+        {% if messages %}
+            <div class="container mt-3">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{message}}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <h1 class="mb-4 contact-title text-center">Sign In</h1>
+        <form class="p-4 form-wrapper rounded shadow" action="{% url 'users:sign_in' %}{% if 'next' in request.GET %}?next={{request.GET.next}}{% endif %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="identifier" class="form-label">Username or Email</label>
+                <input type="text" class="form-control" id="identifier" placeholder="Username or Email" name="identifier" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" placeholder="password" name="password" class="form-control" id="password" required></input>
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary btn-lg d-block mx-auto" data-bs-toggle="modal" data-bs-target="#exampleModal">Submit</button>
+            </div>
+        </form>
+        <div class="text-center mt-3">
+            <small class="text-muted">
+                Don't have an account ? 
+                <a href="{% url 'users:sign_up' %}" class="text-decoration-none">Sign up</a>
+            </small>
+        </div>
+
+    </div>
+
+</body>
+</html>

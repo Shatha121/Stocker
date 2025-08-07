@@ -1,13 +1,13 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib import messages
 
 
 # Create your views here.
 
-def login(request:HttpResponse):
+def login_view(request:HttpResponse):
     if request.method == "POST":
         identifier = request.POST.get("identifier")
         password = request.POST.get("password")
@@ -21,9 +21,11 @@ def login(request:HttpResponse):
                 user = None
         
         if user is not None:
-            login(request,user)
+            auth_login(request,user)
             if user.is_superuser:
                 return redirect("users:admin_dashboard")
+            elif user.groups.filter(name='Employee').exists():
+                return redirect("inventory:product_list")
             else:
                 return redirect(request.GET.get("next","/"))
         else:

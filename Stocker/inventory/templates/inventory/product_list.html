@@ -1,11 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product_list</title>
-</head>
-<body>
-    <h1>This is Product_list page</h1>
-</body>
-</html>
+{% extends 'inventory/base.html' %}
+{% load static %}
+{% block title %}Products{% endblock %}
+{% block content %}
+        <h2 class="mb-5 text-center fw-bold display-6">Product List</h2>
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8 col-lg-6">
+                <form method="get" action="{% url 'inventory:product_list' %}">
+                    <div class="row g-2">
+                        <div class="col-12 col-md-4">
+                            <input class="form-control border-end-0" type="text" name="q" placeholder="Search by name" value="{{request.GET.q}}"> 
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <select class="form-select" name="category">
+                                <option value="">All Category</option>
+                                {% for cat in categories %}
+                                    <option value="{{cat.id}}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{cat.name}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <select class="form-select" name="supplier">
+                                <option value="">All Suppliers</option>
+                                {% for sup in suppliers %}
+                                    <option value="{{sup.id}}" {% if request.GET.supplier == sup.id|stringformat:'s' %}selected{% endif %}>{sup.name}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% if products %}
+        <div class="row g-4">
+            {% for product in products %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top rounded-4" alt="Image of the {{product.name}}">
+                        {% else %}
+                            <img src="{% static 'images/default.jpg' %}" class="card-img-top rounded-4" alt="Image of the {{product.name}}">
+                        {% endif %}
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title fw-semibold">{{ product.name }}</h5>
+                            <p class="card-text text-muted mb-1">{{ product.price }} SAR</p>
+                            <p class="card-text small text-success mb-3">In Stock: {{ product.quantity_in_stock }}</p>
+                            <div class="mt-auto d-flex flex-wrap gap-2">
+                                <a href="{% url 'inventory:product_detail' product.id %}" class="btn btn-sm btn-outline-primary w-100">Details</a>
+                                {% if perms.inventory.change_product %}
+                                    <a href="{% url 'inventory:product_update' product.id %}" class="btn btn-sm btn-outline-warning w-100">Edit</a>
+                                {% endif %}
+                                <a href="{% url 'inventory:update_stock' product.id %}" class="btn btn-sm btn-outline-success w-100">Update Stock</a>
+                            </div>
+                        </div>    
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+                <p class="text-center text-muted fs-5 mt-5">No product available.</p>
+            {% endif %}
+        <div class="mt-5 d-flex justify-content-center">
+        <nav>
+            <ul class="pagination pagination-sm">
+                {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if num == products.number %}
+                        <li class="page-item active">
+                            <span class="page_link"><span class="page-link">{{num}}</span></span>
+                        </li>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{num}}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    
+{% endblock %}

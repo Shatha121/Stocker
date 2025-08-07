@@ -1,0 +1,72 @@
+{% extends 'inventory/base.html' %}
+{% load static %}
+{% block title %}Update {{product.name}}{% endblock %}
+{% block content %}
+    <div class="container py-4">
+    <h1 class="mb-4 text-center">Update product: {{product.name}}</h1>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="form-wrapper p-4 rounded shadow bg-light">
+                <form class="form" action="{% url 'inventory:product_update' product.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
+                        <input type="text" class="form-control" id="name" name="name" required placeholder="Name of the Product" value="{{product.name}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description:</label>
+                        <textarea placeholder="Description about the report" name="description" class="form-control" id="description" rows="4" required>{{product.description}}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price:</label>
+                        <input type="number" class="form-control" id="price" name="price" required placeholder="Price of the Product" value="{{product.price}}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Category: </label>
+                            <select class="form-select" id="category" name="category" required>
+                                {% for value, label in category_choices %}
+                                    <option value="{{value}}" {% if product.category.id == "value" %}selected{% endif %}>{{label}}</option>
+                                {% endfor %}
+                            </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="supplier" class="form-label">Suppliers</label>
+                        <select class="form-select" id="suppliers" name="suppliers" multiple required>
+                            {% for supplier in suppliers %}
+                                <option value="{{supplier.id}}">
+                                    {% if supplier in product.suppliers.all %}selected{% endif %}
+                                    {{ supplier.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Hold Ctrl to select multiple suppliers.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="quentity" class="form-label">Quantity In Stock</label>
+                        <input type="number" class="form-control" id="quentity" name="quentity" required value="{{ product.quantity_in_stock}}"> 
+                    </div>
+                    <div class="mb-3">
+                        <label for="expiry_date" class="form-label">Expiry Date</label>
+                        <input type="date" class="form-control" id="expiry_date" name="expiry_date" required value="{{ product.expiry_date|date:'Y-m-d'}}"> 
+                    </div>
+                    <div class="mb-3">
+                        {% if product.image %}
+                            <p>Current Image:</p>
+                            <img src="{{product.image.url}}" class="img-fluid mb-2 rounded border" style="max-height: 250px;" alt="Current Image"/>
+                        {% endif %}
+                        <label for="image" class="form-label">Change Image:</label>
+                        <input type="file" name="image" class="form-control" id="image" accept="image/*"/>
+                    </div>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary">Update Product</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

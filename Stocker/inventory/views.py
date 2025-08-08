@@ -1,6 +1,6 @@
 from django.shortcuts import render , redirect
 from django.http import HttpRequest, HttpResponse
-from .models import Product, Category, Supplier
+from .models import Product, Category, Supplier, StockUpdate
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from .forms import ProductForm, CategoryForm, SupplierForm
@@ -16,19 +16,32 @@ def is_employee(user):
 
 
 @login_required
-@user_passes_test(is_employee)
-def update_stock(request:HttpRequest, stock_id:int):
-    product = Product.objects.get(pk = stock_id)
+@permission_required('inventory.change_product', raise_exception=True)
+def update_stock(request:HttpRequest, product_id:int):
+    product = Product.objects.get(pk = product_id)
     if request.method == 'POST':
-        quantity = request.POST.get('quantity')
-        if quantity and quantity.isdigit():
-            product.quantity_in_stock = int(quantity)
-            product.save()
-            messages.success(request, "Stock updated successfully.")
-            return redirect('product_list')
-        else:
-            messages.error(request, "Invalid quantity entered.")
-        return render(request, 'inventory/update_stock.html', {'product':product})
+        try:
+            quantity_change = int(request.POST.get('quantity_change'))
+        except:
+            messages.error(request,"Invaild quantity.")
+            return redirect('inventory:update_stock', product_id=product.id)
+        
+        product.quantity_in_stock += quantity_change
+        if product.quantity_in_stock < 0 :
+            messages.error(request, "Resulting stock can't be negative.")
+            return redirect('inventory:update_stock', product_id=product.id)
+        
+        product.save()
+        
+        StockUpdate.objects.create(
+            product=product,
+            updated_by = request.user,
+            quantity_change = quantity_change,
+            note=request.POST.get('note','')
+        )
+        messages.success(request, "Stock updated successfully.")
+        return redirect('inventory:product_list')
+    return render(request, 'inventory/stock_update.html', {'product':product})
 
 
 
@@ -58,13 +71,34 @@ def product_list(request:HttpRequest):
 
 @login_required
 @permission_required('inventory.add_product', raise_exception=True)
-def product_create(request:HttpRequest):
-    form = ProductForm(request.POST)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Product added successfully.")
+def product_add(request:HttpRequest):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        price = request.POST.get('price')
+        category_id = request.POST.get('category')
+        supplier_ids = request.POST.getlist('supplier')
+        quantity_in_stock = request.POST.get('quantity')
+        expiry_date = request.POST.get('expiry_date')
+        image = request.FILES.get('image')
+
+        category = Category.objects.get(id=category_id)
+        product = Product.objects.create(
+            name=name,
+            description = description,
+            price = price,
+            category=category,
+            quantity_in_stock = quantity_in_stock,
+            expiry_date = expiry_date if expiry_date else None,
+            image = image
+        )
+        if supplier_ids:
+            product.suppliers.set(supplier_ids)
+
+        messages.success(request, "Product added successfully")
         return redirect('product_list')
-    return render(request, 'inventory/product_add.html', {'form':form})
+    
+    return render(request, 'inventory/product_add.html', {'categories':Category.objects.all(), 'suppliers':Supplier.objects.all(),})
 
 
 @login_required
@@ -168,7 +202,7 @@ def supplier_list(request:HttpRequest):
     suppliers = Supplier.objects.all()
     if query:
         supplier = suppliers.filter(
-            Q(name__icontains=query) | Q(category__name__icontains=query) | Q(suppliers__name__icontains=query)
+            Q(name__icontains=query)
         ).distinct()
     paginator = Paginator(supplier, 10)
     page = request.GET.get('page')
@@ -203,7 +237,7 @@ def supplier_update(request:HttpRequest, supplier_id:int):
 @login_required
 @permission_required('inventory.supplier_product', raise_exception=True)
 def supplier_delete(request:HttpRequest, supplier_id:int):
-    supplier = Product.objects.get(pk = supplier_id)
+    supplier = Supplier.objects.get(pk = supplier_id)
     supplier.delete()
     messages.success(request, "Supplier deleted successfully")
     return redirect('supplier_list')

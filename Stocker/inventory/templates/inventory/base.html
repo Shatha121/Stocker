@@ -4,15 +4,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
+        <div class="container d-flex justify-content-between align-items-center">
             <a class="navbar-brand fw-bold" href="{% url 'inventory:product_list' %}">Grocery Inventory</a>
+            <div class="d-flex align-items-center gap-3">
+            {% if request.resolver_match.url_name != 'product_list' and request.resolver_match.url_name != 'product_add' %}
+                <a href="{% url 'inventory:product_add' %}" class="btn btn-success btn-sm">
+                    + Add Product
+                </a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <span class="text-white">Hello, {{user.username}}</span>
+                <form method="post" action="{% url 'users:logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                </form>
+            {% endif %}
+            </div>
         </div>
     </nav>
     <div class="container mt-3">

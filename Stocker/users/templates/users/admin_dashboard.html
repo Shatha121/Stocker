@@ -1,11 +1,76 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-</head>
-<body>
-    <h1>This is the admin dashboard</h1>
-</body>
-</html>
+{% extends 'users/admin_base.html' %}
+{% load static %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+        <div class="flex-grow-1 p-4">
+            <h1 class="mb-4 text-center">Admin Dashboard</h1>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <div class="card text-dark bg-primary text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">Total Products</h5>
+                            <p class="display-6">{{total_products}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-dark bg-success text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">Total Categories</h5>
+                            <p class="display-6">{{total_categories}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-dark bg-warning text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">Total Suppliers</h5>
+                            <p class="display-6">{{total_suppliers}}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card text-dark bg-danger text-center">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark">Low Stock Items</h5>
+                            <p class="display-6">{{total_low_stock}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-5">
+                <h4>Low Stock Items</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Quantity</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in low_stock_items %}
+                                <tr>
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.quantity_in_stock}}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary">Reorder</a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">No low stock items found.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+    </div>
+</div>
+        
+{% endblock %}

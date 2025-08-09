@@ -1,0 +1,70 @@
+{% extends 'users/admin_base.html' %}
+{% load static %}
+{% block title %}{{product.name}} detail{% endblock %}
+{% block content %}
+    <div class="container py-4">
+        <div class="row align-items-center">
+            
+            <div class="col-lg-7 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold">{{product.name}}</h2>
+                <p class="text-muted fs-5">{{product.description}}</p>
+
+                <div class="mb-3">
+                    <span class="badge bg-secondary">{{product.category.name}}</span>
+                </div>
+
+                <ul class="list-group list-group-flush mb-4">
+                    
+                    <li class="list-group-item px-0">
+                        <strong>Price: </strong>{{product.price|floatformat:2}}
+                    </li>
+                    <li class="list-group-item px-0">
+                        <strong>Stock Quantity:</strong>
+                        <span class="{% if product.is_low_stock %}text-danger fw-bold{% endif %}">
+                            {{ product.quantity_in_stock}}
+                            {% if product.is_low_stock %}<small>(Low stock!)</small>{% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item px-0">
+                        <strong>Expiry Date:</strong>
+                        {% if product.expiry_date %}
+                            {{ product.expiry_date|date:"F j, Y" }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </li>
+                    <li class="list-group-item px-0">
+                        <strong>Supplier:</strong>
+                        <ul class="mb-0 ps-3">
+                            {% for supplier in product.suppliers.all %}
+                                <li>
+                                    {{supplier.name}}
+                                    {% if supplier.email %} - <a href="mailto:{{supplier.email}}">{{supplier.email}}</a>{% endif %}
+                                    {% if supplier.phone %} - {{supplier.phone}}{% endif %}
+                                    {% if supplier.website %} - <a href="{{supplier.website}}">{{supplier.website}}</a>{% endif %}
+                                </li>
+                            {% empty %}
+                                <li>No suppliers listed.</li>
+                            {% endfor %}
+                        </ul>
+                    </li>    
+                </ul>
+                <a href="{% url 'users:product_update' product.id %}" class="btn btn-warning me-2">Edit</a>
+                <form method="post" action="{% url 'users:product_delete' product.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger me-2" onclick="return confirm('Are you sure want to delete this product?');">Delete</button>
+                </form>
+                <a href="{% url 'users:product_list' %}" class="btn btn-secondary">Back to list</a>
+            </div>
+                <div class="col-lg-5 text-center">
+                    {% if product.image %}
+                        <img src="{{product.image.url}}" alt="image of {{product.name}}" class="img-fluid rounded shadow-sm">
+                    {% else %}
+                        <img src="{% static 'images/default.jpg' %}" alt="image of {{product.name}}" class="img-fluid rounded shadow-sm">
+                    {% endif %}
+                </div>
+                
+            </div>
+        </div>
+    
+{% endblock %}

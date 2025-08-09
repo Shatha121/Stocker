@@ -1,0 +1,56 @@
+{% extends 'users/admin_base.html' %}
+{% load static %}
+{% block title %}Update {{supplier.name}}{% endblock %}
+{% block content %}
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6 col-md-8">
+                <div class="card shadow-lg border-0 rounded-4">
+                    <div class="card-header bg-primary text-white text-center py-3 roudned-top">
+                        <h1 class="mb-0" style="color: #f8f9fa;">Update {{supplier.name}}</h1>
+                    </div>
+                    <div class="card-body p-4">
+                        <form action="{% url 'users:supplier_update' supplier.id %}" method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="mb-4">
+                                <label for="name" class="form-label fw-semibold">Supplier Name</label>
+                                <input type="text" id="name" name="name" class="form-control shadow-sm" placeholder="Enter supplier name" value="{{supplier.name}}" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="email" class="form-label fw-semibold">Email Address</label>
+                                <input type="email" id="email" name="email" class="form-control shadow-sm" value="{{supplier.email}}" placeholder="Enter supplier email" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="phone" class="form-label fw-semibold">Phone Number</label>
+                                <input type="tel" id="phone" name="phone" class="form-control shadow-sm" value="{{supplier.phone}}" placeholder="Enter phone name" maxlength="15" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="website" class="form-label fw-semibold">Website URL</label>
+                                <input type="url" id="website" name="website" class="form-control shadow-sm" value="{{supplier.website}}" placeholder="https://example.com (optional)" required>
+                            </div>
+
+                            <div class="mb-4">
+                                {% if supplier.logo %}
+                                    <label for="image" class="fw-semibold">Current Logo: </label>
+                                    <img src="{{supplier.logo.url}}" class="img-fluid mb-3 rounded border" id="image" style="max-height: 80px;" alt="Current Image"/>
+                                {% endif %}
+                                <br>
+                                <label for="image" class="form-label fw-semibold">Change Logo:</label>
+                                <input type="file" id="logo" name="logo" class="form-control shadow-sm" accept="image/*">
+                                <small class="text-muted">Optional. Upload supplier logo image.</small>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg shadow-sm">Update</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

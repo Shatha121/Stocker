@@ -1,0 +1,164 @@
+{% extends 'users/admin_base.html' %}
+{% load static %}
+{% block title %}Manage Categories{% endblock %}
+{% block content %}
+    <div class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold text-success mb-0">Manage Categories</h2>
+            {% if perms.inventory.add_category %}
+                <button id="add-category-btn" class="btn btn-success fw-semibold px-4 py-2 shadow-sm">
+                    <i class="bi bi-plus-circle"></i> Add Category
+                </button>
+            {% endif %}
+        </div>
+
+        <form method="get" action="{% url 'users:category_list' %}" class="mb-4">
+            <div class="input-group mx-auto" style="max-width: 400px;">
+                <input type="text" class="form-control border-success" placeholder="Search Categories..." name="q" value="{{request.GET.q|default:''}}" aria-label="Search Categories">
+                <button type="submit" class="btn btn-success"><i class="bi bi-search"></i> Search</button>
+            </div>
+        </form>
+
+        {% if categories %}
+        <div class="table-responsive shadow-sm roudned">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-success text-success">
+                    <tr>
+                        <th scope="col">Name</th>
+                        {% if perms.inventory.change_category or perms.inventory.delete_category %}
+                            <th scope="col" class="text-end" style="width: 150px;">Actions</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="new-category-row" style="display: none;">
+                        <form id="new-category-form" method="post" action="{% url 'users:category_add' %}">
+                            {% csrf_token %}
+                            <td><input type="text" name="name" class="form-control" placeholder="New category name"></td>
+                            <td>
+                                <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                <button type="button" id="cancel-new-category" class="btn btn-sm btn-secondary">Cancel</button>
+                            </td>
+                        </form>
+                    </tr>
+                    {% for category in categories %}
+                        <tr data-id="{{category.id}}">
+                            <td>
+                                <span class="category-name">{{category.name}}</span>
+                                <input type="text" class="edit-input form-control form-control-sm" value="{{category.name}}" style="display: none; width: auto; min-width: 150px;">
+                            </td>
+                            <td class="text-end">
+                                <div class="buttons-view-mode">
+                                            {% if perms.inventory.change_category %}
+                                                <button class="btn btn-sm btn-outline-warning me-2 edit-btn" title="Edit Category"><i class="bi bi-pencil-square"></i></button>
+                                            {% endif %}
+                                            {% if perms.inventory.delete_category %}
+                                                <form method="post" action="{% url 'users:category_delete' category.id %}" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Category" onclick="return confirm('Are you sure you want to delete category {{category.name}}?')"><i class="bi bi-trash"></i></button>
+                                                </form>
+                                            {% endif %}
+                                </div>
+                                <div class="buttons-edit-mode" style="display: none;">
+                                    <button class="btn btn-sm btn-success save-btn">Save</button>
+                                    <button class="btn btn-sm btn-secondary cancel-btn">Cancel</button>
+                                    <form method="post" action="{% url 'users:category_update' category.id %}" class="d-none">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="name" class="hidden-name-input">
+                                    </form>
+                                </div>
+                                <form method="post" action="{% url 'users:category_update' category.id %}" class="edit-mode" style="display: none;">
+                                    {% csrf_token %}
+                                    <input type="text" name="name" class="form-control form-control-sm d-inline-block" value="{{category.name}}" style="width: auto; min-width: 150px;">
+                                    <button type="submit" class="btn btn-sm btn-success">Save</button>
+                                    <button type="button" class="btn btn-sm btn-secondary cancel-btn">Cancel</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <script>
+                document.getElementById('add-category-btn').addEventListener('click', function(){
+                    document.getElementById('new-category-row').style.display = 'table-row';
+                    this.style.display = 'none';
+                });
+                 document.getElementById('cancel-new-category').addEventListener('click', function(){
+                    document.getElementById('new-category-row').style.display = 'none';
+                    document.getElementById('add-category-btn').style.display = 'inline-block';
+                });
+                document.querySelectorAll('tr[data-id]').forEach(row => {
+                    const editBtn = row.querySelector('.edit-btn'); 
+                    if (!editBtn) return;
+                    const saveBtn = row.querySelector('.save-btn'); 
+                    const cancelBtn = row.querySelector('.cancel-btn'); 
+                    const spanName = row.querySelector('.category-name'); 
+                    const inputName = row.querySelector('.edit-input'); 
+                    const form = row.querySelector('form.d-none');
+                    const hiddenInput = row.querySelector('.hidden-name-input');
+
+                    editBtn.addEventListener('click', () =>{
+                        const buttonsViewMode = row.querySelector('.buttons-view-mode');
+                        const buttonsEditMode = row.querySelector('.buttons-edit-mode');
+                        if (buttonsViewMode) buttonsViewMode.style.display = 'none';
+                        if (buttonsEditMode) buttonsEditMode.style.display = 'inline-block';
+                        spanName.style.display = 'none';
+                        inputName.style.display = 'inline-block';
+                        inputName.focus();
+                    });
+
+                    cancelBtn.addEventListener('click', () =>{
+                        inputName.value = spanName.textContent;
+                        spanName.style.display = 'inline';
+                        inputName.style.display = 'none';
+
+                        const buttonsViewMode = row.querySelector('.buttons-view-mode');
+                        const buttonsEditMode = row.querySelector('.buttons-edit-mode');
+                        if (buttonsViewMode) buttonsViewMode.style.display = 'inline-block';
+                        if (buttonsEditMode) buttonsEditMode.style.display = 'none';
+                    });
+
+                    saveBtn.addEventListener('click', () =>{
+                        if (!inputName.value.trim()){
+                            alert('Category name cannot be empty.');
+                            inputName.focus();
+                            return;
+                        }
+                        hiddenInput.value = inputName.value.trim();
+                        form.submit();
+                    });
+                });
+            </script>
+        </div>
+
+        <nav class="mt-4" aria-label="Category pagination">
+            <ul class="pagination justify-content-center">
+                {% if categories.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{categories.previous_page_number}}{% if request.get.q %}&q={{request.get.q}}{% endif %}">Previous</a>
+                    </li>
+                {% endif %}
+                {% for num in categories.paginator.page_range %}
+                    {% if num == categories.number %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link">{{num}}</span>
+                        </li>
+                    {% elif num >= categories.number|add:'-2' and num <= categories.number|add:'2' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{num}}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{num}}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                {% if categories.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{categories.next_page_number}}{% if request.get.q %}&q={{request.get.q}}{% endif %}">Next</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        {% else %}
+        <p class="text-center text-muted fs-5 mt-5">No categories found.</p>
+        {% endif %}
+    </div>
+{% endblock %}

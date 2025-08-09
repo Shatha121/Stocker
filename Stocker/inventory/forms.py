@@ -18,3 +18,7 @@ class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args,  **kwargs)
+        self.fields['logo'].required = False

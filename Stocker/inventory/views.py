@@ -55,9 +55,9 @@ def product_list(request:HttpRequest):
     if query:
         products = products.filter(name__icontains=query)
     if category:
-        products = products.filter(category_id=category)
+        products = products.filter(category__id=category)
     if supplier:
-        products = products.filter(supplier_id=supplier)
+        products = products.filter(supplier__id=supplier)
     paginator = Paginator(products, 10)
     page = request.GET.get('page')
     products =  paginator.get_page(page)
@@ -72,33 +72,15 @@ def product_list(request:HttpRequest):
 @login_required
 @permission_required('inventory.add_product', raise_exception=True)
 def product_add(request:HttpRequest):
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        price = request.POST.get('price')
-        category_id = request.POST.get('category')
-        supplier_ids = request.POST.getlist('supplier')
-        quantity_in_stock = request.POST.get('quantity')
-        expiry_date = request.POST.get('expiry_date')
-        image = request.FILES.get('image')
-
-        category = Category.objects.get(id=category_id)
-        product = Product.objects.create(
-            name=name,
-            description = description,
-            price = price,
-            category=category,
-            quantity_in_stock = quantity_in_stock,
-            expiry_date = expiry_date if expiry_date else None,
-            image = image
-        )
-        if supplier_ids:
-            product.suppliers.set(supplier_ids)
-
-        messages.success(request, "Product added successfully")
-        return redirect('product_list')
-    
-    return render(request, 'inventory/product_add.html', {'categories':Category.objects.all(), 'suppliers':Supplier.objects.all(),})
+    if request.method == "POST":
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Product added successfully")
+            return redirect('inventory:product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'inventory/product_add.html', {'form':form})
 
 
 @login_required
@@ -142,102 +124,4 @@ def product_delete(request:HttpRequest, product_id:int):
     product = Product.objects.get(pk = product_id)
     product.delete()
     messages.success(request, "Product deleted successfully")
-    return redirect('product_list')
-
-
-
-#Category
-@login_required
-def category_list(request:HttpRequest):
-    query = request.GET.get('q')
-    categories = Category.objects.all()
-    if query:
-        category = categories.filter(name__icontains=query)
-    paginator = Paginator(category, 10)
-    page = request.GET.get('page')
-    categories =  paginator.get_page(page)
-    return render(request, 'inventory/category_list.html', {'categories':categories})
-
-
-@login_required
-@permission_required('inventory.add_category', raise_exception=True)
-def category_create(request:HttpRequest):
-    form = CategoryForm(request.POST)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Category added successfully.")
-        return redirect('category_list')
-    return render(request, 'inventory/category_form.html', {'form':form})
-
-
-
-
-@login_required
-@permission_required('inventory.change_category', raise_exception=True)
-def category_update(request:HttpRequest, category_id:int):
-    category = Category.objects.get(pk=category_id)
-    form = CategoryForm(request.POST, instance=category)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Category updated successfully.")
-        return redirect('category_list')
-    return render(request, 'inventory/category_form.html', {'form':form})
-
-@login_required
-@permission_required('inventory.delete_category', raise_exception=True)
-def category_delete(request:HttpRequest, category_id:int):
-    category = Category.objects.get(pk = category_id)
-    category.delete()
-    messages.success(request, "Category deleted successfully")
-    return redirect('category_list')
-
-
-
-
-
-#Supplier
-@login_required
-def supplier_list(request:HttpRequest):
-    query = request.GET.get('q')
-    suppliers = Supplier.objects.all()
-    if query:
-        supplier = suppliers.filter(
-            Q(name__icontains=query)
-        ).distinct()
-    paginator = Paginator(supplier, 10)
-    page = request.GET.get('page')
-    suppliers =  paginator.get_page(page)
-    return render(request, 'inventory/supplier_list.html', {'suppliers':suppliers})
-
-
-@login_required
-@permission_required('inventory.add_supplier', raise_exception=True)
-def supplier_create(request:HttpRequest):
-    form = SupplierForm(request.POST)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Supplier added successfully.")
-        return redirect('supplier_list')
-    return render(request, 'inventory/supplier_form.html', {'form':form})
-
-
-
-
-@login_required
-@permission_required('inventory.change_supplier', raise_exception=True)
-def supplier_update(request:HttpRequest, supplier_id:int):
-    supplier = Supplier.objects.get(pk = supplier_id)
-    form = SupplierForm(request.POST, instance=supplier)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Supplier updated successfully.")
-        return redirect('supplier_list')
-    return render(request, 'inventory/supplier_form.html', {'form':form})
-
-@login_required
-@permission_required('inventory.supplier_product', raise_exception=True)
-def supplier_delete(request:HttpRequest, supplier_id:int):
-    supplier = Supplier.objects.get(pk = supplier_id)
-    supplier.delete()
-    messages.success(request, "Supplier deleted successfully")
-    return redirect('supplier_list')
+    return redirect('inventory:product_list')

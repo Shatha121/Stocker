@@ -7,29 +7,40 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <title>{% block title %}{% endblock %}</title>
 </head>
 <body>
-    <nav class="sidebar mt-3">
-        <div class="side-header">
-            <h5 class="text-center">Stocker</h5>
-            <div class="btn-group">
-                <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-primary">Employee View</a>
-                <a href="{% url 'users:logout' %}" class="btn btn-sm btn-outline-danger">Logout</a>
+    <nav class="navbar navbar-expand-lg shadow-sm fixed-top" style="background-color: #f4f4f4">
+        <div class="container-fluid">
+            <h5 class="text-center ms-4"> <a href="{% url 'users:admin_dashboard' %}">Grocery Inventory</a></h5>
+            <div class="d-flex ms-auto gap-2">
+                    <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-primary">Employee View</a>
+                    <form method="post" action="{% url 'users:logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" href="{% url 'users:logout' %}" class="btn btn-sm btn-outline-dark">Logout</button>
+                    </form>
             </div>
+        </div>
+    </nav>
+    <nav class="sidebar pt-5">
+        <div class="side-header">
         </div>
         <ul class="nav flex-column gap-2 p-3">
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-dark"><span class="material-symbols-outlined">package_2</span> Manage Products</a>
+                    <a href="{% url 'users:product_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">package_2</span> Manage Products</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-dark"><span class="material-symbols-outlined">category</span> Manage Categories</a>
+                    <a href="{% url 'users:category_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">category</span> Manage Categories</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-dark"><span class="material-symbols-outlined">groups</span> Manage Suppliers</a>
+                    <a href="{% url 'users:supplier_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">groups</span> Manage Suppliers</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link text-dark"><span class="material-symbols-outlined">assignment</span> View Reports</a>
+                    <a href="{% url 'users:inventory_report' %}" class="nav-link text-dark"><span class="material-symbols-outlined">assignment</span> Inventory Reports</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'users:supplier_report' %}" class="nav-link text-dark"><span class="material-symbols-outlined">assignment</span> Suppliers Reports</a>
                 </li>
         </ul>
     </nav>

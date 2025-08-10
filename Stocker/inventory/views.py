@@ -7,6 +7,8 @@ from .forms import ProductForm, CategoryForm, SupplierForm
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth.decorators import user_passes_test
+from django.core.mail import send_mail
+from stocker import settings
 
 
 # Create your views here.
@@ -26,7 +28,10 @@ def update_stock(request:HttpRequest, product_id:int):
             messages.error(request,"Invaild quantity.")
             return redirect('inventory:update_stock', product_id=product.id)
         
+        old_quantity = product.quantity_in_stock
         product.quantity_in_stock += quantity_change
+
+
         if product.quantity_in_stock < 0 :
             messages.error(request, "Resulting stock can't be negative.")
             return redirect('inventory:update_stock', product_id=product.id)
@@ -39,6 +44,17 @@ def update_stock(request:HttpRequest, product_id:int):
             quantity_change = quantity_change,
             note=request.POST.get('note','')
         )
+        
+        if product.quantity_in_stock <= 5 and old_quantity > 5:
+            send_mail(
+                subject = f"Low Stock Alert: {product.name}",
+                message = f"{product.name} has only {product.quantity_in_stock} left in stock.",
+                from_email= settings.EMAIL_HOST_USER,
+                recipient_list = [settings.EMAIL_HOST_USER],
+                fail_silently = False,
+            )
+
+
         messages.success(request, "Stock updated successfully.")
         return redirect('inventory:product_list')
     return render(request, 'inventory/stock_update.html', {'product':product})
@@ -47,6 +63,7 @@ def update_stock(request:HttpRequest, product_id:int):
 
 #Product
 @login_required
+@user_passes_test(is_employee)
 def product_list(request:HttpRequest):
     query = request.GET.get('q')
     products = Product.objects.all()
@@ -72,15 +89,20 @@ def product_list(request:HttpRequest):
 @login_required
 @permission_required('inventory.add_product', raise_exception=True)
 def product_add(request:HttpRequest):
+    categories = Category.objects.all()
+    suppliers = Supplier.objects.all()
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
+            if int(request.POST.get('quantity_in_stock')) <= 5:
+                messages.error(request, "Stock must be greater than 5 when adding or updating a product.")
+                return redirect('inventory:product_add')
             form.save()
             messages.success(request, "Product added successfully")
             return redirect('inventory:product_list')
     else:
         form = ProductForm()
-    return render(request, 'inventory/product_add.html', {'form':form})
+    return render(request, 'inventory/product_add.html', {'form':form , 'categories':categories, 'suppliers':suppliers})
 
 
 @login_required
@@ -98,12 +120,16 @@ def product_update(request:HttpRequest, product_id:int):
         product.description = request.POST.get('description')
         product.price = request.POST.get('price')
         product.category_id = request.POST.get('category')
-        product.quantity_in_stock = request.POST.get('quantity')
+        product.quantity_in_stock = request.POST.get('quantity_in_stock')
         product.expiry_date = request.POST.get('expiry_date') or None
 
         if 'image' in request.FILES:
             product.image = request.FILES['image'] 
         
+        if int(request.POST.get('quantity_in_stock')) <= 5:
+                messages.error(request, "Stock must be greater than 5 when adding or updating a product.")
+                return redirect('inventory:product_update', product_id = product.id)
+
         product.save()
         product.suppliers.set(request.POST.getlist('suppliers'))
 

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import HttpRequest, HttpResponse
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login as auth_login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.contrib import messages
@@ -9,13 +9,42 @@ from inventory.forms import ProductForm, SupplierForm, CategoryForm
 from django.core.paginator import Paginator
 from django.db.models import Q, F ,Count, Sum
 from django.utils.timezone import now, timedelta
+from django.core.mail import send_mail
 import csv
-
+from stocker import settings
+from .forms import ProductImportForm
 
 # Create your views here.
 
 def is_admin(user):
     return user.is_staff or user.is_superuser
+
+def sign_up_view(request:HttpRequest):
+    if request.method == "POST":
+        firstname = request.POST.get('firstname')
+        lastname = request.POST.get('lastname')
+        username = request.POST.get('identifier')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already taken")
+            return redirect('users:signup')
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already taken")
+            return redirect('users:signup')
+        
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=firstname, last_name=lastname)
+
+        try:
+            employee_group = Group.objects.get(name="Employee")
+            user.groups.add(employee_group)
+        except:
+            messages.error(request,"Employee group doesn't exist.")
+            return redirect("users:signup")
+        messages.success(request, "Account created successfully. you can now log in")
+        return render(request, 'users/login.html')
+    return render(request, 'users/signup.html')
 
 def login_view(request:HttpResponse):
     if request.method == "POST":
@@ -32,10 +61,10 @@ def login_view(request:HttpResponse):
         
         if user is not None:
             auth_login(request,user)
-            if user.is_superuser:
-                return redirect("users:admin_dashboard")
-            elif user.groups.filter(name='Employee').exists():
+            if user.groups.filter(name='Employee').exists():
                 return redirect("inventory:product_list")
+            elif user.groups.filter(name='Admin').exists():
+                return redirect("users:admin_dashboard")
             else:
                 return redirect(request.GET.get("next","/"))
         else:
@@ -78,7 +107,10 @@ def update_stock(request:HttpRequest, product_id:int):
             messages.error(request,"Invaild quantity.")
             return redirect('users:update_stock', product_id=product.id)
         
+        old_quantity = product.quantity_in_stock
         product.quantity_in_stock += quantity_change
+
+
         if product.quantity_in_stock < 0 :
             messages.error(request, "Resulting stock can't be negative.")
             return redirect('users:update_stock', product_id=product.id)
@@ -91,6 +123,17 @@ def update_stock(request:HttpRequest, product_id:int):
             quantity_change = quantity_change,
             note=request.POST.get('note','')
         )
+        
+        if product.quantity_in_stock <= 5 and old_quantity > 5:
+            send_mail(
+                subject = f"Low Stock Alert: {product.name}",
+                message = f"{product.name} has only {product.quantity_in_stock} left in stock.",
+                from_email= settings.EMAIL_HOST_USER,
+                recipient_list = [settings.EMAIL_HOST_USER],
+                fail_silently = False,
+            )
+
+
         messages.success(request, "Stock updated successfully.")
         return redirect('users:product_list')
     return render(request, 'users/update_stock.html', {'product':product})
@@ -124,15 +167,20 @@ def product_list(request:HttpRequest):
 @login_required
 @permission_required('inventory.add_product', raise_exception=True)
 def product_add(request:HttpRequest):
+    categories = Category.objects.all()
+    suppliers = Supplier.objects.all()
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES)
         if form.is_valid():
+            if int(request.POST.get('quantity_in_stock')) <= 5:
+                messages.error(request, "Stock must be greater than 5 when adding or updating a product.")
+                return redirect('users:product_add')
             form.save()
             messages.success(request, "Product added successfully")
             return redirect('users:product_list')
     else:
         form = ProductForm()
-    return render(request, 'users/add_product.html', {'form':form})
+    return render(request, 'users/add_product.html', {'form':form , 'categories':categories, 'suppliers':suppliers})
 
 
 @login_required
@@ -150,12 +198,16 @@ def product_update(request:HttpRequest, product_id:int):
         product.description = request.POST.get('description')
         product.price = request.POST.get('price')
         product.category_id = request.POST.get('category')
-        product.quantity_in_stock = request.POST.get('quantity')
+        product.quantity_in_stock = request.POST.get('quantity_in_stock')
         product.expiry_date = request.POST.get('expiry_date') or None
 
         if 'image' in request.FILES:
             product.image = request.FILES['image'] 
         
+        if int(request.POST.get('quantity_in_stock')) <= 5:
+                messages.error(request, "Stock must be greater than 5 when adding or updating a product.")
+                return redirect('users:product_update', product_id = product.id)
+
         product.save()
         product.suppliers.set(request.POST.getlist('suppliers'))
 
@@ -327,9 +379,28 @@ def inventory_report_csv(request:HttpRequest):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="inventory_report.csv"'
     writer = csv.writer(response)
-    writer.writerow(['Product Name', 'Category', 'Quantity In Stock', 'Expiry Date'])
+    writer.writerow(['Product Name', 'Category', 'Suppliers' ,'Quantity In Stock', 'Expiry Date'])
 
     products = Product.objects.all()
     for p in products:
-        writer.writerow([p.name, p.category.name, p.quantity_in_stock, p.expiry_date or 'N/A'])
+        supplier_names = ", ".join([s.name for s in p.suppliers.all()])
+        product_image_url = request.build_absolute_uri(p.image.url) if p.image else ''
+        writer.writerow([p.name, p.category.name, supplier_names , p.quantity_in_stock, p.expiry_date or 'N/A', product_image_url])
+    return response
+
+@login_required
+@user_passes_test(is_admin)
+def supplier_report_csv(request:HttpRequest):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="supplier_report.csv"'
+    writer = csv.writer(response)
+    writer.writerow(['Supplier Name', 'Email', 'Phone', 'Products Supplied' ,'Total Stock', 'Logo URL'])
+
+    suppliers = Supplier.objects.annotate(
+        product_count = Count('product'),
+        total_stock = Sum('product__quantity_in_stock')
+    )
+    for s in suppliers:
+        logo_url = request.build_absolute_uri(s.logo.url) if s.logo else ''
+        writer.writerow([s.name, s.email or '', s.phone or '', s.product_count or 0, s.total_stock or 0, logo_url])
     return response

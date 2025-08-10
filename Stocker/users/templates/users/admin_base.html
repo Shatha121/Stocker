@@ -2,51 +2,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <title>{% block title %}{% endblock %}</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr"
+    crossorigin="anonymous"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+  />
+  <style>
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @media (min-width: 992px) {
+      #sidebar {
+        width: 220px;
+        position: fixed;
+        top: 56px;
+        bottom: 0;
+        left: 0;
+        padding-top: 1rem;
+        background-color: #f4f4f4;
+        border-right: 1px solid #ddd;
+        overflow-y: auto;
+      }
+
+      main.content {
+        margin-left: 220px;
+        padding: 1.5rem;
+      }
+    }
+
+    #sidebar .nav-link {
+      font-weight: 500;
+      color: #333;
+    }
+
+    #sidebar .nav-link:hover,
+    #sidebar .nav-link.active {
+      background-color: #e8f5e9;
+      color: #2e7d32;
+      border-radius: 6px;
+    }
+
+    #sidebar .material-symbols-outlined {
+      vertical-align: middle;
+      margin-right: 8px;
+      font-size: 1.2rem;
+      color: #43a047;
+    }
+  </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg shadow-sm fixed-top" style="background-color: #f4f4f4">
-        <div class="container-fluid">
-            <h5 class="text-center ms-4"> <a href="{% url 'users:admin_dashboard' %}">Grocery Inventory</a></h5>
-            <div class="d-flex ms-auto gap-2">
-                    <a href="{% url 'inventory:product_list' %}" class="btn btn-sm btn-outline-primary">Employee View</a>
-                    <form method="post" action="{% url 'users:logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" href="{% url 'users:logout' %}" class="btn btn-sm btn-outline-dark">Logout</button>
-                    </form>
-            </div>
-        </div>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow-sm"style="height: 56px;">
+
+    <div class="container-fluid">
+      <button
+        class="btn btn-outline-secondary d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarOffcanvas" aria-controls="sidebarOffcanvas" aria-label="Toggle sidebar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <h5 class="mb-0 ms-3">
+        <a href="{% url 'users:admin_dashboard' %}" class="text-decoration-none text-dark">Grocery Inventory</a>
+      </h5>
+
+      <div class="d-none d-lg-flex ms-auto gap-2">
+        <form method="post" action="{% url 'users:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-dark">Logout</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebarOffcanvas" aria-labelledby="sidebarOffcanvasLabel">
+    <div class="offcanvas-header">
+      <h5 id="sidebarOffcanvasLabel">Menu</h5>
+      <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+      <nav class="nav flex-column">
+        <a href="{% url 'users:product_list' %}" class="nav-link"><span class="material-symbols-outlined">package_2</span> Manage Products</a>
+        <a href="{% url 'users:category_list' %}" class="nav-link"><span class="material-symbols-outlined">category</span> Manage Categories</a>
+        <a href="{% url 'users:supplier_list' %}" class="nav-link"><span class="material-symbols-outlined">groups</span> Manage Suppliers</a>
+        <a href="{% url 'users:inventory_report' %}" class="nav-link"><span class="material-symbols-outlined">assignment</span> Inventory Reports</a>
+        <a href="{% url 'users:supplier_report' %}" class="nav-link"><span class="material-symbols-outlined">assignment</span> Suppliers Reports</a>
+        <form method="post" action="{% url 'users:logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-dark w-100">Logout</button>
+        </form>
     </nav>
-    <nav class="sidebar pt-5">
-        <div class="side-header">
-        </div>
-        <ul class="nav flex-column gap-2 p-3">
-                <li class="nav-item">
-                    <a href="{% url 'users:product_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">package_2</span> Manage Products</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'users:category_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">category</span> Manage Categories</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'users:supplier_list' %}" class="nav-link text-dark"><span class="material-symbols-outlined">groups</span> Manage Suppliers</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'users:inventory_report' %}" class="nav-link text-dark"><span class="material-symbols-outlined">assignment</span> Inventory Reports</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'users:supplier_report' %}" class="nav-link text-dark"><span class="material-symbols-outlined">assignment</span> Suppliers Reports</a>
-                </li>
-        </ul>
+    </div>
+  </div>
+
+  <nav id="sidebar" class="d-none d-lg-block pt-4">
+    <nav class="nav flex-column px-3">
+      <a href="{% url 'users:product_list' %}" class="nav-link"><span class="material-symbols-outlined">package_2</span> Manage Products</a>
+      <a href="{% url 'users:category_list' %}" class="nav-link"><span class="material-symbols-outlined">category</span> Manage Categories</a>
+      <a href="{% url 'users:supplier_list' %}" class="nav-link"><span class="material-symbols-outlined">groups</span> Manage Suppliers</a>
+      <a href="{% url 'users:inventory_report' %}" class="nav-link"><span class="material-symbols-outlined">assignment</span> Inventory Reports</a>
+      <a href="{% url 'users:supplier_report' %}" class="nav-link"><span class="material-symbols-outlined">assignment</span> Suppliers Reports</a>
     </nav>
-    <main class="content">
-        {% block content %}{% endblock %}
-    </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
+  </nav>
+
+  <main class="content pt-5">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
 </body>
 </html>

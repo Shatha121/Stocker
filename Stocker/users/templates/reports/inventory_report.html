@@ -5,7 +5,11 @@
     <div class="container mt-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2>Inventory Report</h2>
-            <a href="{% url 'users:product_list' %}" class="btn btn-secondary">Back to Products</a>
+            <div>
+                <a href="{% url 'users:product_list' %}" class="btn btn-secondary me-2">Back to Products</a>
+                
+                <a href="{% url 'users:inventory_report_csv' %}" class="btn btn-primary"><i class="bi bi-download"></i> Download CSV</a>
+            </div>
         </div>
         <div class="mb-4">
             <div class="row g-3">
@@ -29,7 +33,7 @@
                     <div class="card text-bg-warning">
                         <div class="card-body">
                             <h5 class="card-title text-center">Low Stock Items</h5>
-                            <p class="card-text text-center fs-4">{{low_stock_items.count}}</p>
+                            <p class="card-text text-center fs-4">{{low_stock_products.count}}</p>
                         </div>
                     </div>
                 </div>
@@ -37,7 +41,7 @@
                     <div class="card text-bg-danger">
                         <div class="card-body">
                             <h5 class="card-title text-center text-dark">Expiring Soon</h5>
-                            <p class="card-text text-center text-dark fs-4">{{expiring_product.count}}</p>
+                            <p class="card-text text-center text-dark fs-4">{{expiring_products.count}}</p>
                         </div>
                     </div>
                 </div>

@@ -3,7 +3,14 @@
 {% block title %}Add product{% endblock %}
 {% block content %}
     <div class="container py-5">
-
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{message.tags}}{% endif %} alert-dismissible fade show" role="alert">
+                    {{message}}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="card shadow-lg border-0 rounded-4">
@@ -39,8 +46,8 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="supplier" class="form-label fw-semibold">Suppliers:</label>
-                                <select multiple class="form-select shadow-sm" id="supplier" name="supplier">
+                                <label for="suppliers" class="form-label fw-semibold">Suppliers:</label>
+                                <select multiple class="form-select shadow-sm" id="suppliers" name="suppliers">
                                         {% for sup in suppliers %}
                                             <option value="{{sup.id}}">{{sup.name}}</option>
                                         {% endfor %}
@@ -49,8 +56,8 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="quentity" class="form-label fw-semibold">Quentity In Stock:</label>
-                                <input type="number" class="form-control shadow-sm" id="quentity" name="quentity" required placeholder="Stock quentity">
+                                <label for="quantity_in_stock" class="form-label fw-semibold">Quentity In Stock:</label>
+                                <input type="number" class="form-control shadow-sm" id="quantity_in_stock" name="quantity_in_stock" required placeholder="Stock quentity">
                             </div>
 
                             <div class="mb-3">

@@ -4,9 +4,11 @@ from django.urls import path
 app_name = "users"
 
 urlpatterns = [
-    path('',views.login_view, name="login"),
-    path('logout',views.log_out, name="logout"),
+    path('',views.sign_up_view, name="signup"),
+    path('login/',views.login_view, name="login"),
+    path('logout/',views.log_out, name="logout"),
     path('admin_dashboard/', views.admin_dashboard, name='admin_dashboard'),
+
 
 
     #Products
@@ -32,4 +34,7 @@ urlpatterns = [
     #Reports
     path('reports/inventory/', views.inventory_report , name='inventory_report'),
     path('reports/suppliers/', views.supplier_report , name='supplier_report'),
+    path('reports/inventory/csv/',views.inventory_report_csv, name='inventory_report_csv'),
+    path('reports/supplier/csv/',views.supplier_report_csv, name='supplier_report_csv'),
+    #path('reports/inventory/import/',views.import_products_csv, name='import_products_csv'),
 ]

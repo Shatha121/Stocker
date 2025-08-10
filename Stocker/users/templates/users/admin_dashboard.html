@@ -2,7 +2,7 @@
 {% load static %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
-        <div class="flex-grow-1 p-4">
+        <div class="container pt-4">
             <h1 class="mb-4 text-center">Admin Dashboard</h1>
             <div class="row g-3">
                 <div class="col-md-3">
@@ -58,7 +58,7 @@
                                     <td>{{product.name}}</td>
                                     <td>{{product.quantity_in_stock}}</td>
                                     <td>
-                                        <a href="#" class="btn btn-sm btn-outline-primary">Reorder</a>
+                                        <a href="{% url 'users:update_stock' product.id %}" class="btn btn-sm btn-outline-primary">Reorder</a>
                                     </td>
                                 </tr>
                             {% empty %}

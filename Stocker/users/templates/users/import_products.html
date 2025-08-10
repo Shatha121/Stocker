@@ -1,0 +1,11 @@
+{% extends 'users/admin_base.html' %}
+{% load static %}
+{% block title %}Import Product from CSV{% endblock %}
+{% block content %}
+    <h2>Import Products from CSV</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Import</button>
+    </form>
+{% endblock %}

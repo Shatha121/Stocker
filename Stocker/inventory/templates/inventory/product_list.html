@@ -24,7 +24,7 @@
                                 <select class="form-select" name="category">
                                     <option value="">All Category</option>
                                     {% for cat in categories %}
-                                        <option value="{{cat.id}}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{cat.name}</option>
+                                        <option value="{{cat.id}}" {% if request.GET.category == cat.id|stringformat:'s' %}selected{% endif %}>{{cat.name}}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -33,7 +33,7 @@
                                 <select class="form-select" name="supplier">
                                     <option value="">All Suppliers</option>
                                     {% for sup in suppliers %}
-                                        <option value="{{sup.id}}" {% if request.GET.supplier == sup.id|stringformat:'s' %}selected{% endif %}>{sup.name}</option>
+                                        <option value="{{sup.id}}" {% if request.GET.supplier == sup.id|stringformat:'s' %}selected{% endif %}>{{sup.name}}</option>
                                     {% endfor %}
                                 </select>
                             </div>

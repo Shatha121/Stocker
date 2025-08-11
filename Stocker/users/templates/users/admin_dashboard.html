@@ -41,6 +41,111 @@
                     </div>
                 </div>
             </div>
+            <h2 class="text-center mt-4">Product Distribution Overview</h2>
+            <div class="d-flex justify-content-center gap-5 flex-wrap mt-3 mb-4">
+                
+                <div class="bg-white p-4 rounded shadow text-center" style="flex:1; max-width: 400px; max-height: 420px;">
+                    <h4 class="text-center">Products by Category</h4>
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                <div class="bg-white p-4 rounded shadow text-center" style="flex:1; max-width: 400px; max-height: 420px;">
+                    <h4 class="text-center">Products by Supplier</h4>
+                    <canvas id="supplierChart"></canvas>
+                </div>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+
+                const categoryLabels = JSON.parse('{{ labels|safe|escapejs}}');
+                const categoryData = JSON.parse('{{ data|safe|escapejs}}');
+                
+                const ctxCategory = document.getElementById('categoryChart').getContext('2d');
+                const categoryChart = new Chart(ctxCategory, {
+                    type: 'pie',
+                    data: {
+                        labels: categoryLabels,
+                        datasets: [{
+                            data: categoryData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Product by Category'
+                            }
+                        }
+                    }
+                });
+            </script>
+
+            <script>
+
+                const supplierLabels = JSON.parse('{{ supplier_labels|safe|escapejs}}');
+                const supplierData = JSON.parse('{{ supplier_data_values|safe|escapejs}}');
+                
+                const ctxSupplier = document.getElementById('supplierChart').getContext('2d');
+                const supplierChart = new Chart(ctxSupplier, {
+                    type: 'doughnut',
+                    data: {
+                        labels: supplierLabels,
+                        datasets: [{
+                            data: supplierData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.6)',
+                                'rgba(54, 162, 235, 0.6)',
+                                'rgba(255, 206, 86, 0.6)',
+                                'rgba(75, 192, 192, 0.6)',
+                                'rgba(153, 102, 255, 0.6)',
+                                'rgba(255, 159, 64, 0.6)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Product by Supplier'
+                            }
+                        }
+                    }
+                });
+            </script>
+
             <div class="mt-5">
                 <h4 class="text-center">Low Stock Items</h4>
                 <div class="table-responsive">

@@ -74,7 +74,7 @@ def product_list(request:HttpRequest):
     if category:
         products = products.filter(category__id=category)
     if supplier:
-        products = products.filter(supplier__id=supplier)
+        products = products.filter(suppliers__id=supplier)
     paginator = Paginator(products, 10)
     page = request.GET.get('page')
     products =  paginator.get_page(page)

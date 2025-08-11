@@ -13,6 +13,7 @@ from django.core.mail import send_mail
 import csv
 from stocker import settings
 from .forms import ProductImportForm
+import json
 
 # Create your views here.
 
@@ -85,12 +86,24 @@ def admin_dashboard(request:HttpRequest):
     low_stock_items = Product.objects.filter(quantity_in_stock__lte=5)
     total_low_stock = low_stock_items.count()
 
+    category_data = Category.objects.annotate(product_count = Count('product'))
+    labels = json.dumps([cat.name for cat in category_data])
+    data = json.dumps([cat.product_count for cat in category_data])
+
+    supplier_data = Supplier.objects.annotate(product_count = Count('product'))
+    supplier_labels = json.dumps([sup.name for sup in supplier_data])
+    supplier_data_values = json.dumps([sup.product_count for sup in supplier_data])
+
     context = {
         "total_products": total_products,
         "total_suppliers": total_suppliers,
         "total_categories": total_categories,
         "low_stock_items": low_stock_items,
         "total_low_stock": total_low_stock,
+        'labels': labels,
+        "data": data,
+        'supplier_labels': supplier_labels,
+        "supplier_data_values": supplier_data_values,
     }
 
     return render(request, "users/admin_dashboard.html", context)
@@ -152,7 +165,7 @@ def product_list(request:HttpRequest):
     if category:
         products = products.filter(category__id=category)
     if supplier:
-        products = products.filter(supplier__id=supplier)
+        products = products.filter(suppliers__id=supplier)
     paginator = Paginator(products, 10)
     page = request.GET.get('page')
     products =  paginator.get_page(page)
